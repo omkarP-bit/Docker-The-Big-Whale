@@ -1,17 +1,14 @@
-# Base image
-FROM ubuntu AS build
+FROM golang:1.21 AS build
 
-RUN apt-get update && apt-get install -y golang-go
+WORKDIR /app
 
-ENV G0111MODULE=off
+COPY go.mod .
+COPY calculator.go .
 
-COPY . .
+RUN CGO_ENABLED=0 go build -o calculator .
 
-RUN CGO__ENABLED=0 go build -o /app .
-
-# stage2-main runtime image (go doesn't have runtime dependencies)
 FROM scratch
 
-COPY --from=build /app /app
+COPY --from=build /app/calculator /calculator
 
-ENTRYPOINT [ "/app" ]
+ENTRYPOINT ["/calculator"]
